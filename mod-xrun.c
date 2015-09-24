@@ -9,6 +9,7 @@
 static volatile bool           _jack_shutdown = false;
 static volatile int            _jack_xruns    = 0;
 static volatile jack_client_t* _jack_client   = NULL;
+static          uint32_t       _buffer_size   = 0;
 
 static void signal_handler(int frame)
 {
@@ -24,6 +25,15 @@ static void shutdown_callback(void* arg)
     _jack_client = NULL;
     _jack_shutdown = true;
     return;
+
+    // unused
+    (void)arg;
+}
+
+static int bufsize_callback(uint32_t bufsize, void* arg)
+{
+    _buffer_size = bufsize;
+    return 0;
 
     // unused
     (void)arg;
@@ -57,13 +67,23 @@ int main(void)
     sigaction(SIGTERM, &sterm, NULL);
 
     jack_on_shutdown(client, shutdown_callback, NULL);
+    jack_set_buffer_size_callback(client, bufsize_callback, NULL);
     jack_set_xrun_callback(client, xrun_callback, NULL);
 
+    _buffer_size = jack_get_buffer_size(client);
     _jack_client = client;
+
+    if (_buffer_size == 0)
+    {
+        printf("JACK failed to report buffer size\n");
+        jack_client_close(client);
+        return 1;
+    }
 
     if (jack_activate(client) != 0)
     {
         printf("Failed to activate jack client\n");
+        jack_client_close(client);
         return 1;
     }
 
@@ -77,6 +97,7 @@ int main(void)
 
         if (xrun_count != 0)
         {
+            jack_set_buffer_size(client, _buffer_size);
             last_xruns = _jack_xruns;
             printf("xrun! %i of %i total\n", xrun_count, last_xruns);
         }
