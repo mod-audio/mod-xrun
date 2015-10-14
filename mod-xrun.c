@@ -102,7 +102,7 @@ int main(void)
             printf("xrun! %i of %i total\n", xrun_count, last_xruns);
         }
 
-        usleep(5000);
+        sleep(1);
     }
 
     if (_jack_client != NULL)
