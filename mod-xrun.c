@@ -97,7 +97,7 @@ int main(void)
 
         if (xrun_count != 0)
         {
-            //jack_set_buffer_size(client, _buffer_size);
+            jack_set_buffer_size(client, _buffer_size);
             last_xruns = _jack_xruns;
             printf("xrun! %i of %i total\n", xrun_count, last_xruns);
         }
