@@ -102,6 +102,8 @@ int main(void)
             printf("xrun! %i of %i total\n", xrun_count, last_xruns);
         }
 
+        printf("DSP Load: %.2f\n", jack_cpu_load(client));
+
         sleep(1);
     }
 
